@@ -89,7 +89,8 @@ State.prototype.toString = function () {
 }
 
 State.prototype.valid_address = function (address) {
-    return address < this.stackBase && (address + 4*MAX_STACK) >= this.stackBase;
+    return address < this.stackBase &&g
+	   (address + 4*MAX_STACK) >= this.stackBase;
 }
 
 State.prototype.getMemory = function(address) {
@@ -106,6 +107,16 @@ State.prototype.setMemory = function(address, value) {
     }
     stackIndex = (this.stackBase - address) >> 2;
     this.stack[stackIndex] = value;
+}
+
+State.prototype.push = function (val) {
+   this.setMemory(this.esp, val);
+   this.esp -= 4;
+}
+
+State.prototype.pop = function () {
+   this.getMemory(this.esp);
+   this.esp += 4;
 }
 
 function Command(name) {
@@ -209,35 +220,25 @@ Command.prototype.match_and_run = function (state, string) {
 }
 
 var commands = [
-    new Command("push", [Register, Immediate],
-                function (state, val) {
-                    state.setMemory(state.esp, val.get());
-                    state.esp -= 4;
+    new Command("push", [Register, Immediate], function (state, val) {
+	state.push(val.get());
     }),
-    new Command("pop", [Register],
-                function (state, reg) {
-                    state[reg.get()] = state.getMemory(state.esp);
-                    state.esp += 4;
+    new Command("pop", [Register], function (state, reg) {
+	reg.set(state.pop());
     }),
     new Command("mov", [Immediate, Register, Memory], [Register, Memory],
                 function (state, src, dest) {
-                    dest.set(src.get());
+        dest.set(src.get());
     }),
     new Command("add", [Immediate, Register], [Register],
                 function (state, src, dest) {
-                    state.dest.set(state.dest.get() + state.src.get());
+        state.dest.set(state.dest.get() + state.src.get());
     }),
-    new Command("call", [Immediate],
-                function(state, imm) {
-                    state.setMemory(state.esp, state.eip);
-                    state.esp -= 4;
-                    state.eip = imm.get();
+    new Command("call", [Immediate], function(state, imm) {
+        state.push(eip);g
+	state.eip = imm.get();
     }),
-    new Command("ret",
-                function(state) {
-                    state.eip = state.getMemory(state.esp);
-                    state.esp += 4;
-    }),
+    new Command("ret", function(state) { state.eip = state.pop(); }),
 ];
 
 State.prototype.eval = function (string) {
