@@ -89,8 +89,8 @@ State.prototype.toString = function () {
 }
 
 State.prototype.valid_address = function (address) {
-    return address < this.stackBase &&g
-	   (address + 4*MAX_STACK) >= this.stackBase;
+    return address < this.stackBase &&
+           (address + 4*MAX_STACK) >= this.stackBase;
 }
 
 State.prototype.getMemory = function(address) {
@@ -221,10 +221,10 @@ Command.prototype.match_and_run = function (state, string) {
 
 var commands = [
     new Command("push", [Register, Immediate], function (state, val) {
-	state.push(val.get());
+        state.push(val.get());
     }),
     new Command("pop", [Register], function (state, reg) {
-	reg.set(state.pop());
+        reg.set(state.pop());
     }),
     new Command("mov", [Immediate, Register, Memory], [Register, Memory],
                 function (state, src, dest) {
@@ -232,11 +232,17 @@ var commands = [
     }),
     new Command("add", [Immediate, Register], [Register],
                 function (state, src, dest) {
-        state.dest.set(state.dest.get() + state.src.get());
+        state.ZF = dest.get() == 0;
+        dest.set(dest.get() + src.get());
+    }),
+    new Command("xor", [Register, Immediate], [Register],
+                function (state, src, dest) {
+        state.ZF = dest.get() == 0;
+        dest.set(dest.get() ^ src.get());
     }),
     new Command("call", [Immediate], function(state, imm) {
-        state.push(eip);g
-	state.eip = imm.get();
+        state.push(eip);
+        state.eip = imm.get();
     }),
     new Command("ret", function(state) { state.eip = state.pop(); }),
 ];
