@@ -1,6 +1,5 @@
 gp_registers = ["eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp"];
-all_registers = gp_registers.slice(0);
-all_registers.push("eip", "eflags");
+all_registers = ["eip"].concat(gp_registers)
 
 flag_descriptions = {
     "CF": "Carry flag",
@@ -22,6 +21,7 @@ flag_descriptions = {
     "ID": "Able to use CPUID"
 }
 
+// How does javascript not have int->string with a specified width?
 function hex(v) {
     var parts = new Array(8);
     for (var i = 0; i < 8; i++) {
@@ -54,7 +54,7 @@ function State (prevState) {
         }
         self.IF = true;
         self.eax = 0; self.ebx = 0; self.ecx = 0; self.esi = 0; self.edi = 0;
-        self.esp = self.stackBase; self.ebp = self.stackBase;
+        self.esp = self.stackBase - 4; self.ebp = self.stackBase - 4;
         self.eip = self.codeBase;
     }
 }
@@ -88,73 +88,164 @@ State.prototype.toString = function () {
     return ret;
 }
 
-State.prototype.push = function(val) {
-    stackIndex = (this.stackBase - this.esp) >> 2;
-    this.stack[stackIndex] = val;
-    this.esp -= 4;
+State.prototype.valid_address = function (address) {
+    return address < this.stackBase && (address + 4*MAX_STACK) >= this.stackBase;
 }
 
-State.prototype.pop = function() {
-    stackIndex = (this.stackBase - this.esp) >> 2;
-    this.esp += 4;
+State.prototype.getMemory = function(address) {
+    if (!this.valid_address(address)) {
+        throw "Invalid address " + hex(address);
+    }
+    stackIndex = (this.stackBase - address) >> 2;
     return this.stack[stackIndex];
 }
 
-function Command(regex, callback) {
-    regex = regex.replace("REG", "%(" + all_registers.join("|") + ")");
-    // We need to dobule escape here for some reason.
-    regex = regex.replace("IMM", "\\$(0x\\d+|\\d+)");
-    regex = "^" + regex + "$";
-    this.regex = new RegExp(regex, "i");
-    this.callback = callback;
+State.prototype.setMemory = function(address, value) {
+    if (!this.valid_address(address)) {
+        throw "Invalid address " + hex(address);
+    }
+    stackIndex = (this.stackBase - address) >> 2;
+    this.stack[stackIndex] = value;
+}
+
+function Command(name) {
+    this.name = name;
+
+    // The last argument is the callback.
+    this.callback = arguments[arguments.length - 1];
+
+    // Fuck you javascript, I want to be able to slice arguments.
+    var slice = Function.prototype.call.bind(Array.prototype.slice);
+    this.argumentTypes = slice(arguments, 1, arguments.length - 1);
+}
+
+function Register(state, reg) { this.state = state; this.reg = reg; }
+Register.prototype.get = function () { return this.state[this.reg]; }
+Register.prototype.set = function (val) { this.state[this.reg] = val; }
+Register.regex = new RegExp("^%(" + all_registers.join("|") + ")", "i")
+Register.match = function (state, string) {
+    match = string.match(Register.regex);
+    if (match) {
+        return new Register(state, match[1]);
+    } else {
+        return null;
+    }
+}
+
+function Immediate(val) { this.val = val; }
+Immediate.prototype.get = function () { return this.val; }
+Immediate.match = function (state, string) {
+    match = string.match(/^\$(0x\d{1,8}|\d{1,10})$/i);
+    if (match) {
+        return new Immediate(parseInt(match[1]));
+    } else {
+        return null;
+    }
+}
+
+function Memory(state, disp, base, index, stride) {
+    this.state = state;
+    this.disp = disp;
+    this.base = base;
+    this.index = index;
+    this.stride = stride;
+}
+
+Memory.prototype.getAddress = function () {
+    return this.disp + this.base + this.index * this.stride;
+}
+Memory.prototype.get = function () {
+    return this.state.getMemory(this.getAddress());
+}
+Memory.prototype.set = function (val) {
+    return this.state.setMemory(this.getAddress(), val);
+}
+Memory.match = function (state, string) {
+    var disp = string.match(/^(-?0x\d{1,8}|-?\d{1,10})\(.*\)$/i);
+    disp = (disp) ? parseInt(disp[1]) : 0;
+
+    // Rest contains everything inside the parentheses.
+    var rest = string.match(/^(-?0x\d{1,8}|-?\d{1,10})?\((.*)\)$/i);
+    if (!rest) { return false; }  // All memory refs match that regex.
+    rest = rest[2];
+
+    var parts = rest.split(",");
+    var base = Register.match(state, parts[0]).get();
+    var index = (parts.length > 1) ? Register.match(state, parts[1]).get() : 0;
+    var stride = (parts.length > 2) ? parseInt(parts[2]) : 1;
+
+    return new Memory(state, disp, base, index, stride);
+}
+
+Command.prototype.match_and_run = function (state, string) {
+    var self = this;
+    var parts = string.split(" ");
+    if (parts[0] !== this.name) {
+        return false;
+    }
+
+    var newState = new State(state);
+    newState.eip += 4;
+    var callback_args = [newState];
+
+    var command_args = parts.slice(1).join("").split(",");
+    if (command_args.length != self.argumentTypes.length) { return false; }
+
+    // For each arg, attempt to match some possible type for that argument.
+    command_args.forEach(function (arg, i) {
+        var matched = self.argumentTypes[i].some(function (argType) {
+            var match = argType.match(newState, arg);
+            if (match) { callback_args.push(match); }
+            return match;
+        });
+        if (!matched) {
+          throw "Invalid arg: " + arg + " for " + self.name;
+        }
+    });
+
+    self.callback.apply(self, callback_args);
+
+    return newState;
 }
 
 var commands = [
-    new Command("pushl? REG", function (state, reg) {
-        state.push(state[reg]);
+    new Command("push", [Register, Immediate],
+                function (state, val) {
+                    state.setMemory(state.esp, val.get());
+                    state.esp -= 4;
     }),
-    new Command("pushl? IMM", function (state, imm) {
-        state.push(parseInt(imm));
+    new Command("pop", [Register],
+                function (state, reg) {
+                    state[reg.get()] = state.getMemory(state.esp);
+                    state.esp += 4;
     }),
-    new Command("popl? REG", function (state, reg) {
-        state[reg] = state.pop();
+    new Command("mov", [Immediate, Register, Memory], [Register, Memory],
+                function (state, src, dest) {
+                    dest.set(src.get());
     }),
-    new Command("movl? IMM, ?REG", function(state, imm, reg) {
-        state[reg] = parseInt(imm);
+    new Command("add", [Immediate, Register], [Register],
+                function (state, src, dest) {
+                    state.dest.set(state.dest.get() + state.src.get());
     }),
-    new Command("movl? REG, ?REG", function(state, src, dst) {
-        state[dst] = state[src];
+    new Command("call", [Immediate],
+                function(state, imm) {
+                    state.setMemory(state.esp, state.eip);
+                    state.esp -= 4;
+                    state.eip = imm.get();
     }),
-    new Command("xorl? REG, ?REG", function(state, src, dst) {
-        state[dst] ^= state[src];
+    new Command("ret",
+                function(state) {
+                    state.eip = state.getMemory(state.esp);
+                    state.esp += 4;
     }),
-    new Command("addl? REG, ?REG", function(state, src, dst) {
-        state[dst] += state[src];
-    }),
-    new Command("addl? IMM, ?REG", function(state, imm, dst) {
-        state[dst] += parseInt(imm);
-    }),
-    new Command("call IMM", function(state, imm) {
-        state.push(state.eip);
-        state.eip = parseInt(imm);
-    }),
-    new Command("ret", function(state) {
-        state.eip = state.pop();
-    }),
-    ];
+];
 
 State.prototype.eval = function (string) {
-    var newState = new State(this);
+    var self = this;
+    var newState = null;
     var matched = commands.some(function (command) {
-        var found = string.match(command.regex);
-        if (found) {
-            var args = [newState];
-            args.push.apply(args, found.slice(1));
-            newState.eip += 4;
-            command.callback.apply(this, args);
-            return true;
-        }
-        return false;
+        newState = command.match_and_run(self, string);
+        return newState;
     });
     if (matched) {
         return newState;
@@ -162,3 +253,6 @@ State.prototype.eval = function (string) {
         throw "No matching command for " + string;
     }
 }
+
+s = new State();
+s.eval("push $0x41");
