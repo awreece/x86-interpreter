@@ -160,7 +160,7 @@ Register.match = function (state, string) {
 function Immediate(val) { this.val = val; }
 Immediate.prototype.get = function () { return this.val; }
 Immediate.match = function (state, string) {
-    match = string.match(/^\$(0x\d{1,8}|\d{1,10})$/i);
+    match = string.match(/^\$(0x[\da-f]{1,8}|\d{1,10})$/i);
     if (match) {
         return new Immediate(parseInt(match[1]));
     } else {
