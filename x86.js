@@ -31,6 +31,20 @@ function hex(v) {
     return "0x" + parts.join("");
 }
 
+// How does javascript not have generators?
+function range() {
+    var step = (arguments.length > 2) ? arguments[2] : 1;
+    var start = (arguments.length > 1) ? arguments[0] : 0;
+    var stop = (arguments.length > 1) ? arguments[1] : arguments[0];
+
+    var ret = [];
+    for (var i = start; (step > 0) ? i < stop : i > stop; i += step) {
+        // Why doesn't javascript like nice things like yield?
+        ret.push(i);
+    }
+    return ret;
+}
+
 var MAX_STACK = 10;
 
 function State (prevState) {
