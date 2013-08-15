@@ -24,18 +24,21 @@
   </head>
   <body>
     <div ng-controller="StateController">
-      <div class="registers">
-        <div class="register" ng-repeat="register in all_registers">
-          {{register}}: {{hex(state[register])}}
+      <div class="container">
+        <div class="stack left">
+          <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
+            {{hex(address)}} [{{hex(state.getMemory(address))}}]
+          </div>
         </div>
-      </div>
-      <div class="stack">
-        <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
-          {{hex(address)}} [{{hex(state.getMemory(address))}}]
+        <div class="registers right">
+          <div class="register" ng-repeat="register in all_registers">
+            {{register}}: {{hex(state[register])}}
+          </div>
         </div>
+        <div class="clear"></div>
       </div>
       <div>
-        <form ng-submit="state.eval(command)">
+        <form ng-submit="state.eval(command); command=''">
           <input type="text" ng-model="command" size="30"
                  placeholder="Type a command to execute...">
           <input class="btm-primary" type="submit" value="Run">

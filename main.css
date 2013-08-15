@@ -6,6 +6,11 @@
     float: right;
 }
 
+.clear {
+    clear: both;
+}
+
 .container {
     position: relative;
+    max-width: 400px;
 }
