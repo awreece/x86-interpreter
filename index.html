@@ -24,9 +24,11 @@
     </script>
   </head>
   <body>
+    <p>Double click a value to edit it!</p>
     <div ng-controller="StateController">
       <div class="container">
         <div class="stack left">
+          <h2>Stack</h2>
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
             {{hex(address)}} [
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
@@ -40,6 +42,7 @@
           </div>
         </div>
         <div class="registers right">
+          <h2>Registers</h2>
           <div class="register" ng-repeat="register in all_registers">
             {{register}}:
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
