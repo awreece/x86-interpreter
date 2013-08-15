@@ -19,6 +19,7 @@
         $scope.state = state;
         $scope.hex = hex;
         $scope.range = range;
+        $scope.parseInt = parseInt;
       }
     </script>
   </head>
@@ -32,7 +33,16 @@
         </div>
         <div class="registers right">
           <div class="register" ng-repeat="register in all_registers">
-            {{register}}: {{hex(state[register])}}
+            <!--            {{register}}: <span ng-dblclick="state[register]=parseInt(prompt('Change the value of %' + register, hex(state[register])))">{{hex(state[register])}}</span>
+            -->
+            {{register}}:
+            <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
+              <form ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
+                <input type="text" ng-model="newVal" size="10">
+                <input class="hidden" type="submit">
+               </form>
+              <span ng-show="!isEditing">{{hex(state[register])}}</span>
+            </span>
           </div>
         </div>
         <div class="clear"></div>
