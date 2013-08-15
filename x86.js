@@ -202,6 +202,33 @@ Memory.match = function (state, string) {
     return new Memory(state, disp, base, index, stride);
 }
 
+Command.prototype.split_args = function (string) {
+    var ret = [];
+    while (string.length > 0) {
+        var comma = string.indexOf(",");
+        var lparen = string.indexOf("(");
+
+        if (comma < 0) {
+            ret.push(string);
+            string = "";
+        } else {
+            if (lparen >= 0 && lparen < comma) {
+                var rparen = string.indexOf(")");
+                // When we push, make sure to include the rparen.
+                ret.push(string.slice(0, rparen + 1));
+                // The character after the rparen *must* be a comma, which we
+                // ignore.
+                string = string.slice(rparen + 2);
+            } else {
+                ret.push(string.slice(0, comma));
+                string = string.slice(comma + 1);
+            }
+        }
+    }
+
+    return ret;
+}
+
 Command.prototype.match_and_run = function (state, string) {
     var self = this;
     var parts = string.split(" ");
@@ -211,7 +238,7 @@ Command.prototype.match_and_run = function (state, string) {
 
     var callback_args = [state];
 
-    var command_args = parts.slice(1).join("").split(",");
+    var command_args = this.split_args(parts.slice(1).join(""));
     if (command_args.length != self.argumentTypes.length) { return false; }
 
     // For each arg, attempt to match some possible type for that argument.
