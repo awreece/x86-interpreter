@@ -195,9 +195,7 @@ Command.prototype.match_and_run = function (state, string) {
         return false;
     }
 
-    var newState = new State(state);
-    newState.eip += 4;
-    var callback_args = [newState];
+    var callback_args = [state];
 
     var command_args = parts.slice(1).join("").split(",");
     if (command_args.length != self.argumentTypes.length) { return false; }
@@ -205,7 +203,7 @@ Command.prototype.match_and_run = function (state, string) {
     // For each arg, attempt to match some possible type for that argument.
     command_args.forEach(function (arg, i) {
         var matched = self.argumentTypes[i].some(function (argType) {
-            var match = argType.match(newState, arg);
+            var match = argType.match(state, arg);
             if (match) { callback_args.push(match); }
             return match;
         });
@@ -214,9 +212,9 @@ Command.prototype.match_and_run = function (state, string) {
         }
     });
 
+    state.eip += 4;
     self.callback.apply(self, callback_args);
-
-    return newState;
+    return true;
 }
 
 var commands = [
@@ -249,17 +247,10 @@ var commands = [
 
 State.prototype.eval = function (string) {
     var self = this;
-    var newState = null;
     var matched = commands.some(function (command) {
-        newState = command.match_and_run(self, string);
-        return newState;
+        return command.match_and_run(self, string);
     });
-    if (matched) {
-        return newState;
-    } else {
+    if (!matched) {
         throw "No matching command for " + string;
     }
 }
-
-s = new State();
-s.eval("push $0x41");
