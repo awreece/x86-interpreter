@@ -230,13 +230,18 @@ var commands = [
     }),
     new Command("add", [Immediate, Register], [Register],
                 function (state, src, dest) {
-        state.ZF = dest.get() == 0;
         dest.set(dest.get() + src.get());
+        state.ZF = dest.get() == 0;
     }),
     new Command("xor", [Register, Immediate], [Register],
                 function (state, src, dest) {
-        state.ZF = dest.get() == 0;
         dest.set(dest.get() ^ src.get());
+        state.ZF = dest.get() == 0;
+    }),
+    new Command("sub", [Register, Immediate], [Register],
+                function (state, src, dest) {
+        dest.set(dest.get() - src.get());
+        state.ZF = dest.get() == 0;
     }),
     new Command("call", [Immediate], function(state, imm) {
         state.push(eip);
