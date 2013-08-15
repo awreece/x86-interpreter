@@ -28,16 +28,22 @@
       <div class="container">
         <div class="stack left">
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
-            {{hex(address)}} [{{hex(state.getMemory(address))}}]
+            {{hex(address)}} [
+            <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
+              <form class="inline" ng-show="isEditing" ng-submit="state.setMemory(address,parseInt(newVal));isEditing=false">
+                <input type="text" ng-model="newVal" size="10">
+                <input class="hidden" type="submit">
+               </form>
+              <span ng-show="!isEditing">{{hex(state.getMemory(address))}}</span>
+            </span>
+            ]
           </div>
         </div>
         <div class="registers right">
           <div class="register" ng-repeat="register in all_registers">
-            <!--            {{register}}: <span ng-dblclick="state[register]=parseInt(prompt('Change the value of %' + register, hex(state[register])))">{{hex(state[register])}}</span>
-            -->
             {{register}}:
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
-              <form ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
+              <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
                 <input class="hidden" type="submit">
                </form>
