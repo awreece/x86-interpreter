@@ -1,5 +1,5 @@
 gp_registers = ["eax", "ebx", "ecx", "edx", "esi", "edi", "esp", "ebp"];
-all_registers = ["eip"].concat(gp_registers)
+all_registers = gp_registers.slice(0).concat(["eip"])
 
 flag_descriptions = {
     "CF": "Carry flag",
