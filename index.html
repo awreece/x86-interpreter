@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en" ng-app="x86interpreter">
   <head>
     <title>Code Arcana</title>
     <meta charset="utf-8" />
@@ -21,6 +21,13 @@
         $scope.range = range;
         $scope.parseInt = parseInt;
       }
+
+      var mod = angular.module('x86interpreter', []);
+      mod.factory('$exceptionHandler', function () {
+        return function (exception, cause) {
+          alert(exception);
+        };
+      });
     </script>
   </head>
   <body>
@@ -35,7 +42,7 @@
               <form class="inline" ng-show="isEditing" ng-submit="state.setMemory(address,parseInt(newVal));isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
                 <input class="hidden" type="submit">
-               </form>
+              </form>
               <span ng-show="!isEditing">{{hex(state.getMemory(address))}}</span>
             </span>
             ]
@@ -49,7 +56,7 @@
               <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
                 <input class="hidden" type="submit">
-               </form>
+              </form>
               <span ng-show="!isEditing">{{hex(state[register])}}</span>
             </span>
           </div>
