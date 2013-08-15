@@ -258,4 +258,5 @@ State.prototype.eval = function (string) {
     if (!matched) {
         throw "No matching command for " + string;
     }
+    return self;
 }
