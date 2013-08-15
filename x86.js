@@ -68,7 +68,7 @@ function State (prevState) {
         }
         self.IF = true;
         self.eax = 0; self.ebx = 0; self.ecx = 0; self.esi = 0; self.edi = 0;
-        self.esp = self.stackBase - 4; self.ebp = self.stackBase - 4;
+        self.esp = self.stackBase; self.ebp = self.stackBase;
         self.eip = self.codeBase;
     }
 }
@@ -124,13 +124,14 @@ State.prototype.setMemory = function(address, value) {
 }
 
 State.prototype.push = function (val) {
-   this.setMemory(this.esp, val);
    this.esp -= 4;
+   this.setMemory(this.esp, val);
 }
 
 State.prototype.pop = function () {
-   this.getMemory(this.esp);
+   var val = this.getMemory(this.esp);
    this.esp += 4;
+   return val;
 }
 
 function Command(name) {
