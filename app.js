@@ -23,26 +23,26 @@ mod.directive('focusOn', function() {
 mod.directive('integer', function(){
   return {
     require: 'ngModel',
-    link: function(scope, ele, attr, ctrl){
-      ctrl.$parsers.unshift(function(viewValue) {
-        if (viewValue == "0x" || viewValue == "0X") {
-          return 0;
-        }
-        return parseInt(viewValue);
-      });
-      ctrl.$formatters.push(hex);
-    }
+  link: function(scope, ele, attr, ctrl){
+    ctrl.$parsers.unshift(function(viewValue) {
+      if (viewValue == "0x" || viewValue == "0X") {
+        return 0;
+      }
+      return parseInt(viewValue);
+    });
+    ctrl.$formatters.push(hex);
+  }
   };
 });
 mod.directive('ngEnter', function () {
-    return function (scope, element, attrs) {
-        element.bind("keydown keypress", function (event) {
-            if(event.which === 13) {
-                scope.$apply(function (){
-                    scope.$eval(attrs.ngEnter);
-                });
-                event.preventDefault();
-            }
+  return function (scope, element, attrs) {
+    element.bind("keydown keypress", function (event) {
+      if(event.which === 13) {
+        scope.$apply(function (){
+          scope.$eval(attrs.ngEnter);
         });
-    };
+        event.preventDefault();
+      }
+    });
+  };
 });

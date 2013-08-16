@@ -21,21 +21,21 @@
       <div class="row">
        <div class="instructions col-xs-4">
          <h2>Code</h2>
-         <div class="instruction" ng-repeat="address in range(state.codeBase+40-4, state.codeBase-4, -4)">
+         <div class="instruction" ng-repeat="address in state.codeAddrs">
            <span class="text-muted">{{hex(address)}}</span>
            <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
              ng-init="isEditing=state.instructions[address].length==0">
              <input ng-show="isEditing" type="text" ng-model="state.instructions[address]"
-			       size="10" focus-on="state.eip==address"
-				   ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
-             <span ng-show="!isEditing">{{state.getCode(address)}}</span>
+                    size="10" focus-on="state.eip==address"
+                    ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
+             <span ng-show="!isEditing">{{state.instructions[address]}}</span>
            </span>
            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
          </div>
        </div>
         <div class="stack col-xs-4">
           <h2>Stack</h2>
-          <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
+          <div class="memory" ng-repeat="address in state.stackAddrs.slice(0).reverse()">
             <span class="text-muted">{{hex(address)}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state.stack[address]" size="10" integer>
