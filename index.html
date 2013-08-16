@@ -54,6 +54,19 @@
           }
         };
       });
+	  mod.directive('ngEnter', function () {
+	      return function (scope, element, attrs) {
+	          element.bind("keydown keypress", function (event) {
+	              if(event.which === 13) {
+	                  scope.$apply(function (){
+	                      scope.$eval(attrs.ngEnter);
+	                  });
+
+	                  event.preventDefault();
+	              }
+	          });
+	      };
+	  });
     </script>
   </head>
   <body>
@@ -65,13 +78,7 @@
            <span class="text-muted">{{hex(address)}}</span>
            <span ng-dblclick="isEditing=(state.getCode(address).length==0||!isEditing)"
              ng-init="isEditing=state.getCode(address).length==0">
-             <!-- I don't really want to use a form here, but I don't know how
-             to get the ng-keyup to work for enter. Until then, we'll wrap
-             the input in a form so that enter will cause the action. -->
-             <form class="inline" ng-show="isEditing" ng-submit="isEditing=false;state.step()">
-               <input type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address">
-               <input ng-show="false" type="submit">
-             </form>
+             <input ng-show="isEditing" type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address" ng-enter="isEditing=(state.getCode(address).length==0||!isEditing);state.step()">
              <span ng-show="!isEditing">{{state.getCode(address)}}</span>
            </span>
            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
@@ -82,10 +89,7 @@
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
             <span class="text-muted">{{hex(address)}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
-              <form class="inline" ng-show="isEditing" ng-submit="isEditing=false">
-                <input type="text" ng-model="state.stack[address]" size="10" integer>
-                <input ng-show="false" type="submit">
-              </form>
+              <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state.stack[address]" size="10" integer>
               <span ng-show="!isEditing">{{hex(state.stack[address])}}</span>
             </span>
           </div>
@@ -95,10 +99,7 @@
           <div class="register" ng-repeat="register in all_registers">
             <span class="text-muted">%{{register}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
-              <form class="inline" ng-show="isEditing" ng-submit="isEditing=false">
-                <input type="text" ng-model="state[register]" size="10" integer>
-                <input ng-show="false" type="submit">
-              </form>
+              <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state[register]" size="10" integer>
               <span ng-show="!isEditing">{{hex(state[register])}}</span>
             </span>
           </div>
