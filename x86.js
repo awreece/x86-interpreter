@@ -315,7 +315,7 @@ var commands = [
         state.ZF = dest.get() == 0;
     }),
     new Command("call", [Immediate], function(state, imm) {
-        state.push(eip);
+        state.push(state.eip);
         state.eip = imm.get();
     }),
     new Command("ret", function(state) { state.eip = state.pop(); }),
