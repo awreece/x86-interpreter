@@ -14,60 +14,7 @@
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <script>
-      state = new State();
-      function StateController($scope) {
-        $scope.all_registers = all_registers;
-        $scope.state = state;
-        $scope.hex = hex;
-        $scope.range = range;
-        $scope.parseInt = parseInt;
-        $scope.keys = Object.keys;
-      }
-
-      var mod = angular.module('x86interpreter', ['ui.bootstrap']);
-      mod.factory('$exceptionHandler', function () {
-        return function (exception, cause) {
-          alert(exception);
-        };
-      });
-      mod.directive('focusOn', function() {
-        return function(scope, element, attrs) {
-          scope.$watch(attrs.focusOn, function (condition) {
-            if (condition) {
-              element[0].focus();
-            }
-          });
-        }
-      });
-      mod.directive('integer', function(){
-        return {
-          require: 'ngModel',
-          link: function(scope, ele, attr, ctrl){
-            ctrl.$parsers.unshift(function(viewValue) {
-              if (viewValue == "0x" || viewValue == "0X") {
-                return 0;
-              }
-              return parseInt(viewValue);
-            });
-            ctrl.$formatters.push(hex);
-          }
-        };
-      });
-	  mod.directive('ngEnter', function () {
-	      return function (scope, element, attrs) {
-	          element.bind("keydown keypress", function (event) {
-	              if(event.which === 13) {
-	                  scope.$apply(function (){
-	                      scope.$eval(attrs.ngEnter);
-	                  });
-
-	                  event.preventDefault();
-	              }
-	          });
-	      };
-	  });
-    </script>
+    <script src="./app.js"></script>
   </head>
   <body>
     <div ng-controller="StateController" class="container">
@@ -76,9 +23,11 @@
          <h2>Code</h2>
          <div class="instruction" ng-repeat="address in range(state.codeBase+40-4, state.codeBase-4, -4)">
            <span class="text-muted">{{hex(address)}}</span>
-           <span ng-dblclick="isEditing=(state.getCode(address).length==0||!isEditing)"
-             ng-init="isEditing=state.getCode(address).length==0">
-             <input ng-show="isEditing" type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address" ng-enter="isEditing=(state.getCode(address).length==0||!isEditing);state.step()">
+           <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
+             ng-init="isEditing=state.instructions[address].length==0">
+             <input ng-show="isEditing" type="text" ng-model="state.instructions[address]"
+			       size="10" focus-on="state.eip==address"
+				   ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
              <span ng-show="!isEditing">{{state.getCode(address)}}</span>
            </span>
            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
@@ -105,7 +54,6 @@
           </div>
         </div>
       </div>
-      <p>Double click a value to edit it!</p>
     </div>
   </body>
 </html>
