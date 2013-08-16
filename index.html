@@ -31,6 +31,15 @@
           alert(exception);
         };
       }); 
+	  mod.directive('focusOn', function() {
+		  return function(scope, element, attrs) {
+			  scope.$watch(attrs.focusOn, function (condition) {
+				  if (condition) {
+					  element[0].focus();
+			      }
+			  });
+		  }
+	  })
     </script>
   </head>
   <body>
@@ -54,7 +63,7 @@
           <div class="register" ng-repeat="register in all_registers">
             <span class="text-muted">%{{register}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
-              <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
+              <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal); isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
                 <input ng-show="false" type="submit">
               </form>
@@ -64,13 +73,16 @@
         </div>
         <div class="instructions col-xs-4">
           <h3>Code</h3>
-          <form class="inline" ng-submit="state.setCode(state.eip,command);state.step();command=''">
-            <input type="text" ng-model="command" size="50"
-            placeholder="Add a command...">
-            <button class="btn btn-primary" type="submit">Run</button>
-          </form>
           <div class="instruction" ng-repeat="address in range(state.codeBase+40-4, state.codeBase-4, -4)">
-            {{hex(address)}} {{state.getCode(address)}}
+            <span class="text-muted">{{hex(address)}}</span>
+			
+			<span ng-dblclick="isEditing=(state.getCode(address).length==0||!isEditing)" 
+			      ng-init="isEditing=state.getCode(address).length==0">
+			  <input ng-show="isEditing" class="inline" type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address">
+			  <span ng-show="!isEditing">{{state.getCode(address)}}</span>
+		    </span>
+			
+			<button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
           </div>
         </div>
       </div>

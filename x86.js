@@ -327,7 +327,7 @@ State.prototype.eval = function (string) {
         return command.match_and_run(self, string);
     });
     if (!matched) {
-        throw "No matching command for " + string;
+        throw "No matching command for '" + string + "'";
     }
     return self;
 }
