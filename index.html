@@ -3,73 +3,70 @@
   <head>
     <title>Code Arcana</title>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0-wip/css/bootstrap.min.css">
     <link rel="stylesheet" href="./main.css" type="text/css" />
     <script src="./x86.js"></script>
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script src="./ui-bootstrap-tpls-0.5.0.min.js"></script>
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
     <script>
-      state = new State();
-
       function StateController($scope) {
         $scope.all_registers = all_registers;
-        $scope.state = state;
+        $scope.state = new State();
         $scope.hex = hex;
         $scope.range = range;
         $scope.parseInt = parseInt;
       }
 
-      var mod = angular.module('x86interpreter', []);
+      var mod = angular.module('x86interpreter', ['ui.bootstrap']);
       mod.factory('$exceptionHandler', function () {
         return function (exception, cause) {
           alert(exception);
         };
-      });
+      }); 
     </script>
   </head>
   <body>
-    <p>Double click a value to edit it!</p>
-    <div ng-controller="StateController">
-      <div class="container">
-        <div class="stack left">
+    <div ng-controller="StateController" class="container">
+      <p>Double click a value to edit it!</p>
+      <div class="row">
+        <div class="stack col-xs-6">
           <h2>Stack</h2>
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
-            {{hex(address)}} [
+            <span class="text-muted">{{hex(address)}}</span> 
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <form class="inline" ng-show="isEditing" ng-submit="state.setMemory(address,parseInt(newVal));isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
-                <input class="hidden" type="submit">
+                <input ng-show="false" type="submit">
               </form>
               <span ng-show="!isEditing">{{hex(state.getMemory(address))}}</span>
             </span>
-            ]
           </div>
         </div>
-        <div class="registers right">
+        <div class="registers col-xs-6">
           <h2>Registers</h2>
           <div class="register" ng-repeat="register in all_registers">
-            {{register}}:
+            <span class="text-muted">{{register}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
-                <input class="hidden" type="submit">
+                <input ng-show="false" type="submit">
               </form>
               <span ng-show="!isEditing">{{hex(state[register])}}</span>
             </span>
           </div>
         </div>
-        <div class="clear"></div>
       </div>
-      <div>
-        <form ng-submit="state.eval(command); command=''">
-          <input type="text" ng-model="command" size="50"
-                 placeholder="Type a command to execute... (ie 'push $0x4141')">
-          <input class="btm-primary" type="submit" value="Run">
-        </form>
-      </div>
+      <form ng-submit="state.eval(command); command=''">
+        <input type="text" ng-model="command" size="50"
+        placeholder="Type a command to execute... (ie 'push $0x4141')">
+        <button class="btn btn-primary" type="submit">Run</button>
+      </form>
     </div>
   </body>
 </html>
