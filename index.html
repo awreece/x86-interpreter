@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="./main.css" type="text/css" />
     <script src="./x86.js"></script>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular.min.js"></script>
     <script src="./ui-bootstrap-tpls-0.5.0.min.js"></script>
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -19,20 +19,20 @@
   <body>
     <div ng-controller="StateController" class="container">
       <div class="row">
-       <div class="instructions col-xs-4">
-         <h2>Code</h2>
-         <div class="instruction" ng-repeat="address in state.codeAddrs">
-           <span class="text-muted">{{hex(address)}}</span>
-           <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
-             ng-init="isEditing=state.instructions[address].length==0">
-             <input ng-show="isEditing" type="text" ng-model="state.instructions[address]"
-                    size="10" focus-on="state.eip==address"
-                    ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
-             <span ng-show="!isEditing">{{state.instructions[address]}}</span>
-           </span>
-           <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
-         </div>
-       </div>
+        <div class="instructions col-xs-4">
+          <h2>Code</h2>
+          <div class="instruction" ng-repeat="address in state.codeAddrs">
+            <span class="text-muted">{{hex(address)}}</span>
+            <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
+              ng-init="isEditing=state.instructions[address].length==0">
+              <input ng-show="isEditing" type="text" ng-model="state.instructions[address]"
+              size="10" focus-on="state.eip==address"
+              ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
+              <span ng-show="!isEditing">{{state.instructions[address]}}</span>
+            </span>
+            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
+          </div>
+        </div>
         <div class="stack col-xs-4">
           <h2>Stack</h2>
           <div class="memory" ng-repeat="address in state.stackAddrs.slice(0).reverse()">
@@ -50,6 +50,14 @@
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state[register]" size="10" integer>
               <span ng-show="!isEditing">{{hex(state[register])}}</span>
+            </span>
+          </div>
+          <div class="register">
+            <span class="text-muted">%eflags</span>
+            <span ng-repeat="(flag, desc) in flag_descriptions"
+                  ng-class="state[flag] ? 'text-primary' : 'text-muted'"
+                  ng-click="state[flag] = !state[flag]">
+              {{flag}}
             </span>
           </div>
         </div>

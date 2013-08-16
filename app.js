@@ -3,6 +3,7 @@ function StateController($scope) {
   $scope.state = new State();
   $scope.range = range;
   $scope.hex = hex;
+  $scope.flag_descriptions = flag_descriptions;
 }
 
 var mod = angular.module('x86interpreter', ['ui.bootstrap']);

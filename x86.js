@@ -45,8 +45,6 @@ function range() {
   return ret;
 }
 
-var MAX_STACK = 10;
-
 function clone(object) {
   var ret = {};
   Object.keys(object).forEach(function (key) {
@@ -86,6 +84,7 @@ function State (prevState) {
   }
 }
 
+var MAX_STACK = 10;
 State.prototype.stackAddrs = range(0xfffffe00 - 4*MAX_STACK, 0xfffffe00, 4);
 State.prototype.codeAddrs = range(0x8040a00, 0x8040a00 + 4*MAX_STACK, 4).reverse();
 
