@@ -47,22 +47,29 @@ function range() {
 
 var MAX_STACK = 10;
 
+function clone(object) {
+  var ret = {};
+  Object.keys(object).forEach(function (key) {
+    Object.defineProperty(ret, key, Object.getOwnProperty(object, key));
+  });
+  return ret;
+}
+
 function State (prevState) {
     this.prevState = prevState;
     var self = this;
     if (prevState) {
-        self.stack = prevState.stack.slice(0);
+        self.stack = clone(prevState.stack);
         all_registers.forEach(function (reg) {
             self[reg] = prevState[reg];
         });
         for (var flag in flag_descriptions) {
             self[flag] = prevState[flag];
         }
+        self.instructions = clone(prevState.instructions);
     } else {
-        self.stack = new Array(MAX_STACK);
-        for (var i = 0; i < MAX_STACK; i++) {
-            self.stack[i] = 0;
-        }
+        self.stack = {};
+        self.instructions = {};
         for (var flag in flag_descriptions) {
             self[flag] = false;
         }
@@ -102,25 +109,12 @@ State.prototype.toString = function () {
     return ret;
 }
 
-State.prototype.valid_address = function (address) {
-    return address < this.stackBase &&
-           (address + 4*MAX_STACK) >= this.stackBase;
-}
-
 State.prototype.getMemory = function(address) {
-    if (!this.valid_address(address)) {
-        throw "Invalid address " + hex(address);
-    }
-    stackIndex = (this.stackBase - address) >> 2;
-    return this.stack[stackIndex];
+    return this.stack[address] || 0;
 }
 
 State.prototype.setMemory = function(address, value) {
-    if (!this.valid_address(address)) {
-        throw "Invalid address " + hex(address);
-    }
-    stackIndex = (this.stackBase - address) >> 2;
-    this.stack[stackIndex] = value;
+    this.stack[address] = value;
 }
 
 State.prototype.push = function (val) {
@@ -132,6 +126,18 @@ State.prototype.pop = function () {
    var val = this.getMemory(this.esp);
    this.esp += 4;
    return val;
+}
+
+State.prototype.setCode = function (address, command) {
+  this.instructions[address] = command;
+}
+
+State.prototype.getCode = function (address) {
+  if (address in this.instructions) {
+    return this.instructions[address];
+  } else {
+    throw "Invalid address " + hex(address);
+  }
 }
 
 function Command(name) {
