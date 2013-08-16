@@ -275,6 +275,10 @@ var commands = [
         dest.set(dest.get() + src.get());
         state.ZF = dest.get() == 0;
     }),
+    new Command("lea", [Memory], [Register], function (state, mem, reg) {
+        reg.set(mem.getAddress());
+        state.ZF = reg.get() == 0;
+    }),
     new Command("xor", [Register, Immediate], [Register],
                 function (state, src, dest) {
         dest.set(dest.get() ^ src.get());
