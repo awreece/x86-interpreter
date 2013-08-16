@@ -60,17 +60,23 @@ function State (prevState) {
     var self = this;
     if (prevState) {
         self.stack = clone(prevState.stack);
+        self.instructions = clone(prevState.instructions);
         all_registers.forEach(function (reg) {
             self[reg] = prevState[reg];
         });
         for (var flag in flag_descriptions) {
             self[flag] = prevState[flag];
         }
-        self.instructions = clone(prevState.instructions);
     } else {
         self.stack = {};
+		range(self.stackBase - 40, self.stackBase, 4).forEach(function (v) {
+			self.stack[v] = 0;
+		})
         self.instructions = {};
-        for (var flag in flag_descriptions) {
+		range(self.codeBase, self.codeBase + 40, 4).forEach(function (v) {
+			self.instructions[v] = "";
+		})
+		for (var flag in flag_descriptions) {
             self[flag] = false;
         }
         self.IF = true;
@@ -110,11 +116,19 @@ State.prototype.toString = function () {
 }
 
 State.prototype.getMemory = function(address) {
-    return this.stack[address] || 0;
+	if (address in this.stack) {
+		return this.stack[address];
+	} else {
+		throw "Invalid address " + hex(address);
+    }
 }
 
 State.prototype.setMemory = function(address, value) {
-    this.stack[address] = value;
+	if (address in this.stack) {
+		return this.stack[address] = value;
+	} else {
+		throw "Invalid address " + hex(address);
+    }
 }
 
 State.prototype.push = function (val) {
@@ -129,15 +143,20 @@ State.prototype.pop = function () {
 }
 
 State.prototype.setCode = function (address, command) {
-  this.instructions[address] = command;
+	if (address in this.instructions) {
+        this.instructions[address] = command;
+	} else {
+		throw "Invalid address " + hex(address);
+    }
 }
 
 State.prototype.getCode = function (address) {
-  if (address in this.instructions) {
-    return this.instructions[address];
-  } else {
-    throw "Invalid address " + hex(address);
-  }
+	if (address in this.instructions) {
+        return this.instructions[address];
+	} else {
+		throw "Invalid address " + hex(address);
+    }
+
 }
 
 function Command(name) {
@@ -311,4 +330,8 @@ State.prototype.eval = function (string) {
         throw "No matching command for " + string;
     }
     return self;
+}
+
+State.prototype.step = function () {
+  this.eval(this.getCode(this.eip));
 }

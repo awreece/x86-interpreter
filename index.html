@@ -15,12 +15,14 @@
     <![endif]-->
 
     <script>
+      state = new State();
       function StateController($scope) {
         $scope.all_registers = all_registers;
-        $scope.state = new State();
+        $scope.state = state;
         $scope.hex = hex;
         $scope.range = range;
         $scope.parseInt = parseInt;
+        $scope.keys = Object.keys;
       }
 
       var mod = angular.module('x86interpreter', ['ui.bootstrap']);
@@ -34,7 +36,7 @@
   <body>
     <div ng-controller="StateController" class="container">
       <div class="row">
-        <div class="stack col-xs-6">
+        <div class="stack col-xs-4">
           <h2>Stack</h2>
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
             <span class="text-muted">{{hex(address)}}</span> 
@@ -47,10 +49,10 @@
             </span>
           </div>
         </div>
-        <div class="registers col-xs-6">
+        <div class="registers col-xs-4">
           <h2>Registers</h2>
           <div class="register" ng-repeat="register in all_registers">
-            <span class="text-muted">{{register}}</span>
+            <span class="text-muted">%{{register}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <form class="inline" ng-show="isEditing" ng-submit="state[register]=parseInt(newVal);isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
@@ -60,12 +62,18 @@
             </span>
           </div>
         </div>
+        <div class="instructions col-xs-4">
+          <h3>Code</h3>
+          <form class="inline" ng-submit="state.setCode(state.eip,command);state.step();command=''">
+            <input type="text" ng-model="command" size="50"
+            placeholder="Add a command...">
+            <button class="btn btn-primary" type="submit">Run</button>
+          </form>
+          <div class="instruction" ng-repeat="address in range(state.codeBase+40-4, state.codeBase-4, -4)">
+            {{hex(address)}} {{state.getCode(address)}}
+          </div>
+        </div>
       </div>
-      <form ng-submit="state.eval(command); command=''">
-        <input type="text" ng-model="command" size="50"
-        placeholder="Type a command to execute... (ie 'push $0x4141')">
-        <button class="btn btn-primary" type="submit">Run</button>
-      </form>
       <p>Double click a value to edit it!</p>
     </div>
   </body>
