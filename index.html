@@ -31,15 +31,15 @@
           alert(exception);
         };
       }); 
-	  mod.directive('focusOn', function() {
-		  return function(scope, element, attrs) {
-			  scope.$watch(attrs.focusOn, function (condition) {
-				  if (condition) {
-					  element[0].focus();
-			      }
-			  });
-		  }
-	  })
+      mod.directive('focusOn', function() {
+        return function(scope, element, attrs) {
+          scope.$watch(attrs.focusOn, function (condition) {
+            if (condition) {
+              element[0].focus();
+            }
+          });
+        }
+      })
     </script>
   </head>
   <body>
@@ -50,6 +50,9 @@
           <div class="memory" ng-repeat="address in range(state.stackBase - 4, state.stackBase - 40, -4)">
             <span class="text-muted">{{hex(address)}}</span> 
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
+              <!-- I don't really want to use a form here, but I don't know how
+                   to get the ng-keyup to work for enter. Until then, we'll wrap
+                   the input in a form so that enter will cause the action. -->
               <form class="inline" ng-show="isEditing" ng-submit="state.setMemory(address,parseInt(newVal));isEditing=false">
                 <input type="text" ng-model="newVal" size="10">
                 <input ng-show="false" type="submit">
@@ -75,14 +78,17 @@
           <h3>Code</h3>
           <div class="instruction" ng-repeat="address in range(state.codeBase+40-4, state.codeBase-4, -4)">
             <span class="text-muted">{{hex(address)}}</span>
-			
-			<span ng-dblclick="isEditing=(state.getCode(address).length==0||!isEditing)" 
-			      ng-init="isEditing=state.getCode(address).length==0">
-			  <input ng-show="isEditing" class="inline" type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address">
-			  <span ng-show="!isEditing">{{state.getCode(address)}}</span>
-		    </span>
-			
-			<button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
+
+            <span ng-dblclick="isEditing=(state.getCode(address).length==0||!isEditing)" 
+                  ng-init="isEditing=state.getCode(address).length==0">
+              <form class="inline" ng-show="isEditing" ng-submit="isEditing=false;state.step()">
+                <input type="text" ng-model="state.instructions[address]" size="10" focus-on="state.eip==address">
+                <input ng-show="false" type="submit">
+              </form>
+              <span ng-show="!isEditing">{{state.getCode(address)}}</span>
+            </span>
+
+            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
           </div>
         </div>
       </div>
