@@ -23,21 +23,21 @@
           <h2>Code</h2>
           <div class="instruction" ng-repeat="address in state.codeAddrs">
             <span class="text-muted">{{hex(address)}}</span>
-            <span ng-click="isEditing=(state.instructions[address].length==0||!isEditing)"
+            <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
               ng-init="isEditing=state.instructions[address].length==0">
               <input ng-show="isEditing" type="text" ng-model="state.instructions[address]"
               size="10" focus-on="state.eip==address"
               ng-enter="isEditing=(state.instructions[address].length==0||!isEditing);state.step()">
               <span ng-show="!isEditing">{{state.instructions[address]}}</span>
             </span>
-            <button class="btn btn-primary" ng-show="address==state.eip" ng-click="state.step()">Step</button>
+            <button class="btn btn-primary" ng-show="address==state.eip" ng-dblclick="state.step()">Step</button>
           </div>
         </div>
         <div class="stack col-xs-4">
           <h2>Stack</h2>
           <div class="memory" ng-repeat="address in state.stackAddrs.slice(0).reverse()">
             <span class="text-muted">{{hex(address)}}</span>
-            <span ng-click="isEditing=!isEditing" ng-init="isEditing=false">
+            <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state.stack[address]" size="10" integer>
               <span ng-show="!isEditing">{{hex(state.stack[address])}}</span>
             </span>
@@ -47,7 +47,7 @@
           <h2>Registers</h2>
           <div class="register" ng-repeat="register in all_registers">
             <span class="text-muted">%{{register}}</span>
-            <span ng-click="isEditing=!isEditing" ng-init="isEditing=false">
+            <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state[register]" size="10" integer>
               <span ng-show="!isEditing">{{hex(state[register])}}</span>
             </span>
@@ -56,7 +56,7 @@
             <span class="text-muted">%eflags</span>
             <span class="flag" ng-repeat="(flag, desc) in flag_descriptions"
                   ng-class="state[flag] ? 'text-primary' : 'text-muted'"
-                  ng-click="state[flag] = !state[flag]">
+                  ng-dblclick="state[flag] = !state[flag]">
               {{flag}}
             </span>
           </div>
