@@ -79,7 +79,7 @@ function State (prevState) {
     }
     self.IF = true;
     self.eax = 0; self.ebx = 0; self.ecx = 0; self.esi = 0; self.edi = 0;
-    self.esp = 0xfffffe00; self.ebp = 0xfffffe00;
+    self.esp = 0xfffffdfc; self.ebp = 0xfffffdfc;
     self.eip = 0x8040a00;
   }
 }

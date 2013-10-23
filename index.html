@@ -22,6 +22,9 @@
         <div class="instructions col-xs-4">
           <h2>Code</h2>
           <div class="instruction" ng-repeat="address in state.codeAddrs">
+            <span class="register-markers" ng-repeat="register in all_registers">
+              <span class="text-primary register-marker" ng-show="state[register] == address">%{{register}}</span>
+            </span>
             <span class="text-muted">{{hex(address)}}</span>
             <span ng-dblclick="isEditing=(state.instructions[address].length==0||!isEditing)"
               ng-init="isEditing=state.instructions[address].length==0">
@@ -36,6 +39,9 @@
         <div class="stack col-xs-4">
           <h2>Stack</h2>
           <div class="memory" ng-repeat="address in state.stackAddrs.slice(0).reverse()">
+            <span class="register-markers" ng-repeat="register in all_registers">
+              <span class="text-primary register-marker" ng-show="state[register] == address">%{{register}}</span>
+            </span>
             <span class="text-muted">{{hex(address)}}</span>
             <span ng-dblclick="isEditing=!isEditing" ng-init="isEditing=false">
               <input ng-show="isEditing" ng-enter="isEditing=false" type="text" ng-model="state.stack[address]" size="10" integer>
